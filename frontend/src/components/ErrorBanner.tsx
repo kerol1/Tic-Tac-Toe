@@ -7,10 +7,28 @@ interface ErrorBannerProps {
   onReload: () => void
 }
 
-const EXPLANATION: Record<string, string> = {
+const BY_CODE: Record<string, string> = {
   ENGINE_UNAVAILABLE: 'The game engine stopped answering, so the match could not continue.',
-  NETWORK: 'The server could not be reached.',
+  ENGINE_REJECTED: 'The game engine refused a move it should have accepted. Start a new match.',
   INTERNAL_ERROR: 'Something went wrong on the server while the match was running.',
+  SESSION_NOT_FOUND: 'This match no longer exists on the server.',
+  SIMULATION_ALREADY_STARTED: 'This match has already been started.',
+  NETWORK: 'The server could not be reached. Check your connection and try again.',
+}
+
+/** A sentence a person can act on; the raw code stays visible underneath for reference. */
+function explain(failure: Failure): string {
+  const known = BY_CODE[failure.code]
+  if (known) {
+    return known
+  }
+  if (/^HTTP_5\d\d$/.test(failure.code)) {
+    return 'The server is not available right now. Give it a few seconds and try again.'
+  }
+  if (/^HTTP_4\d\d$/.test(failure.code)) {
+    return 'The server did not accept the request.'
+  }
+  return failure.message
 }
 
 export function ErrorBanner({ failure, onRestart, onReload }: ErrorBannerProps): ReactElement {
@@ -18,7 +36,7 @@ export function ErrorBanner({ failure, onRestart, onReload }: ErrorBannerProps):
   return (
     <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-player-x/40 bg-white/60 p-4 sm:flex-row sm:items-center">
       <div className="flex-1">
-        <p className="font-display font-medium text-ink">{EXPLANATION[failure.code] ?? failure.message}</p>
+        <p className="font-display font-medium text-ink">{explain(failure)}</p>
         <p className="mt-1 font-data text-xs text-ink/60">{failure.code}</p>
       </div>
       <button
