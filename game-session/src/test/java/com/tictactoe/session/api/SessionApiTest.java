@@ -1,15 +1,18 @@
 package com.tictactoe.session.api;
 
 import com.tictactoe.session.domain.Board;
+import com.tictactoe.session.config.SimulationProperties;
 import com.tictactoe.session.domain.SessionState;
 import com.tictactoe.session.persistence.SessionRepository;
 import com.tictactoe.session.simulation.SessionDetails;
+import com.tictactoe.session.strategy.StrategyKind;
 import com.tictactoe.session.support.SessionTestBase;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.util.Map;
 import java.util.UUID;
 
 import static com.github.tomakehurst.wiremock.client.WireMock.equalTo;
@@ -23,6 +26,9 @@ class SessionApiTest extends SessionTestBase {
 
     @Autowired
     private SessionRepository sessions;
+
+    @Autowired
+    private SimulationProperties defaults;
 
     @Test
     void createReturnsCreatedSessionAndCreatesTheEngineGame() {
@@ -59,6 +65,35 @@ class SessionApiTest extends SessionTestBase {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         wireMock.verify(2, postRequestedFor(urlEqualTo("/games")));
         assertThat(details(response.getBody().sessionId()).state()).isEqualTo(SessionState.CREATED);
+    }
+
+    @Test
+    void createTakesTheStrategyAndBlunderRateFromTheRequest() {
+        ResponseEntity<SessionDetails> response = http.postForEntity("/sessions",
+                Map.of("strategy", "RANDOM", "blunderRate", 0.5), SessionDetails.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
+        assertThat(response.getBody().settings().strategy()).isEqualTo(StrategyKind.RANDOM);
+        assertThat(response.getBody().settings().blunderRate()).isEqualTo(0.5);
+        assertThat(details(response.getBody().sessionId()).settings().strategy()).isEqualTo(StrategyKind.RANDOM);
+    }
+
+    @Test
+    void createFallsBackToTheConfiguredDefaults() {
+        ResponseEntity<SessionDetails> bare = http.postForEntity("/sessions", null, SessionDetails.class);
+        ResponseEntity<SessionDetails> partial = http.postForEntity("/sessions", Map.of("blunderRate", 0), SessionDetails.class);
+
+        assertThat(bare.getBody().settings()).isEqualTo(defaults.defaultSettings());
+        assertThat(partial.getBody().settings().strategy()).isEqualTo(defaults.strategy());
+        assertThat(partial.getBody().settings().blunderRate()).isZero();
+    }
+
+    @Test
+    void createRejectsABlunderRateOutsideZeroToOne() {
+        ResponseEntity<ErrorResponse> response = http.postForEntity("/sessions", Map.of("blunderRate", 1.5), ErrorResponse.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+        assertThat(response.getBody().code()).isEqualTo("VALIDATION_ERROR");
     }
 
     @Test

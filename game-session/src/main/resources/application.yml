@@ -38,6 +38,8 @@ engine:
 simulation:
   tick-delay: ${SIMULATION_TICK_DELAY:600ms}
   strategy: ${SIMULATION_STRATEGY:heuristic}
+  # How often a heuristic player skips its reasoning; 0 plays perfectly (and always draws).
+  blunder-rate: ${SIMULATION_BLUNDER_RATE:0.25}
   max-recovery-cycles: 3
 
 eureka:

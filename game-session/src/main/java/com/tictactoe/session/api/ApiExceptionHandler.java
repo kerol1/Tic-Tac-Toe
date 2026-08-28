@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -43,7 +44,8 @@ public class ApiExceptionHandler {
         return respond(HttpStatus.BAD_GATEWAY, "ENGINE_REJECTED", "The game engine rejected the request");
     }
 
-    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class})
+    @ExceptionHandler({HttpMessageNotReadableException.class, MethodArgumentTypeMismatchException.class,
+            MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorResponse> badRequest(Exception ex) {
         return respond(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "Invalid request");
     }

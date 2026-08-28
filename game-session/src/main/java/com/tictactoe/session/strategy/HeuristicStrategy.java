@@ -11,6 +11,10 @@ import java.util.random.RandomGenerator;
  * Win if possible, otherwise block the opponent's win, otherwise prefer the center,
  * then a corner, then any free cell. Ties among equally good cells are broken randomly
  * so consecutive games do not look identical.
+ *
+ * <p>Two players that always block never lose, so every game between them is a draw.
+ * {@code blunderRate} is the probability of playing a random free cell instead of
+ * reasoning about the move; zero plays perfectly.
  */
 public final class HeuristicStrategy implements MoveStrategy {
 
@@ -22,13 +26,18 @@ public final class HeuristicStrategy implements MoveStrategy {
     private static final List<Integer> CORNERS = List.of(0, 2, 6, 8);
 
     private final RandomGenerator random;
+    private final double blunderRate;
 
-    public HeuristicStrategy(RandomGenerator random) {
+    public HeuristicStrategy(RandomGenerator random, double blunderRate) {
         this.random = random;
+        this.blunderRate = blunderRate;
     }
 
     @Override
     public int next(Board board, Player player) {
+        if (blunderRate > 0 && random.nextDouble() < blunderRate) {
+            return pick(board.freePositions()).orElseThrow(() -> new IllegalStateException("No free cell to play"));
+        }
         return completingMove(board, player)
                 .or(() -> completingMove(board, player.opponent()))
                 .or(() -> board.cell(CENTER) == null ? Optional.of(CENTER) : Optional.empty())
