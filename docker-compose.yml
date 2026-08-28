@@ -32,3 +32,12 @@ services:
       timeout: 3s
       retries: 12
       start_period: 15s
+
+  frontend:
+    build:
+      context: frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      game-session:
+        condition: service_healthy
