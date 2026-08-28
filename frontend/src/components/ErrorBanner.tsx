@@ -49,7 +49,7 @@ export function ErrorBanner({ failure, onRestart, onReload }: ErrorBannerProps):
           alt="Will Ferrell crying out no"
           loading="lazy"
           onError={handleGifError}
-          className="size-20 shrink-0 rounded-xl object-cover motion-reduce:hidden"
+          className="aspect-square w-full shrink-0 rounded-xl object-cover motion-reduce:hidden sm:size-44"
         />
       )}
       <div className="flex-1">
