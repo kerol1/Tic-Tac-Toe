@@ -5,6 +5,8 @@ import com.tictactoe.session.domain.GameStatus;
 import com.tictactoe.session.domain.Player;
 import com.tictactoe.session.domain.SessionState;
 import com.tictactoe.session.engine.GameState;
+import com.tictactoe.session.strategy.StrategyKind;
+import com.tictactoe.session.strategy.StrategySettings;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Entity;
@@ -30,6 +32,13 @@ public class SessionEntity {
 
     @Column(length = 64)
     private String failureReason;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 16)
+    private StrategyKind strategy;
+
+    @Column(nullable = false)
+    private double blunderRate;
 
     @Convert(converter = BoardConverter.class)
     @Column(nullable = false, length = 9)
@@ -57,10 +66,12 @@ public class SessionEntity {
     }
 
     /** A new session mirrors the game exactly as the Engine created it. */
-    public static SessionEntity created(UUID id, GameState game, Instant now) {
+    public static SessionEntity created(UUID id, GameState game, StrategySettings settings, Instant now) {
         SessionEntity entity = new SessionEntity();
         entity.id = id;
         entity.state = SessionState.CREATED;
+        entity.strategy = settings.strategy();
+        entity.blunderRate = settings.blunderRate();
         entity.createdAt = now;
         entity.snapshot(game, now);
         return entity;
@@ -95,6 +106,10 @@ public class SessionEntity {
 
     public String getFailureReason() {
         return failureReason;
+    }
+
+    public StrategySettings getSettings() {
+        return new StrategySettings(strategy, blunderRate);
     }
 
     public Board getBoard() {

@@ -1,5 +1,6 @@
 package com.tictactoe.session.api;
 
+import com.tictactoe.session.config.SimulationProperties;
 import com.tictactoe.session.domain.SessionState;
 import com.tictactoe.session.simulation.SessionDetails;
 import com.tictactoe.session.simulation.SessionQueryService;
@@ -7,11 +8,13 @@ import com.tictactoe.session.simulation.SessionService;
 import com.tictactoe.session.sse.SseProgressPublisher;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -27,18 +30,22 @@ public class SessionController {
     private final SessionService sessions;
     private final SessionQueryService queries;
     private final SseProgressPublisher progress;
+    private final SimulationProperties defaults;
 
-    public SessionController(SessionService sessions, SessionQueryService queries, SseProgressPublisher progress) {
+    public SessionController(SessionService sessions, SessionQueryService queries, SseProgressPublisher progress,
+                             SimulationProperties defaults) {
         this.sessions = sessions;
         this.queries = queries;
         this.progress = progress;
+        this.defaults = defaults;
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a session and its game in the engine")
-    public SessionDetails create() {
-        return sessions.create();
+    @Operation(summary = "Create a session and its game in the engine; strategy and blunder rate are optional")
+    public SessionDetails create(@Valid @RequestBody(required = false) CreateSessionRequest request) {
+        CreateSessionRequest options = request == null ? new CreateSessionRequest(null, null) : request;
+        return sessions.create(options.settingsOr(defaults));
     }
 
     @PostMapping("/{sessionId}/simulate")

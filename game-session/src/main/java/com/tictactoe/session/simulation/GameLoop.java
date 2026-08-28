@@ -7,6 +7,8 @@ import com.tictactoe.session.engine.EngineUnavailableException;
 import com.tictactoe.session.engine.GameState;
 import com.tictactoe.session.engine.MoveRecovery;
 import com.tictactoe.session.strategy.MoveStrategy;
+import com.tictactoe.session.strategy.MoveStrategyFactory;
+import com.tictactoe.session.strategy.StrategySettings;
 import com.tictactoe.session.web.RequestIdFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,25 +31,25 @@ public class GameLoop {
     private static final Logger log = LoggerFactory.getLogger(GameLoop.class);
 
     private final MoveRecovery engine;
-    private final MoveStrategy strategy;
+    private final MoveStrategyFactory strategies;
     private final SessionWriter writer;
     private final ProgressEventPublisher publisher;
     private final Duration tick;
 
-    public GameLoop(MoveRecovery engine, MoveStrategy strategy, SessionWriter writer,
+    public GameLoop(MoveRecovery engine, MoveStrategyFactory strategies, SessionWriter writer,
                     ProgressEventPublisher publisher, SimulationProperties properties) {
         this.engine = engine;
-        this.strategy = strategy;
+        this.strategies = strategies;
         this.writer = writer;
         this.publisher = publisher;
         this.tick = properties.tickDelay();
     }
 
     /** Runs on its own thread; {@code requestId} keeps the log trail of the request that started it. */
-    public void run(UUID sessionId, String requestId) {
+    public void run(UUID sessionId, StrategySettings settings, String requestId) {
         MDC.put(RequestIdFilter.MDC_KEY, requestId);
         try {
-            GameState finalState = playToTheEnd(sessionId);
+            GameState finalState = playToTheEnd(sessionId, strategies.create(settings));
             announce(sessionId, new ProgressEvent.Finished(finalState.status(), finalState.winningLine(), finalState.board()));
             log.info("Simulation finished sessionId={} status={}", sessionId, finalState.status());
         } catch (EngineRejectedException rejected) {
@@ -64,7 +66,7 @@ public class GameLoop {
         }
     }
 
-    private GameState playToTheEnd(UUID sessionId) throws InterruptedException {
+    private GameState playToTheEnd(UUID sessionId, MoveStrategy strategy) throws InterruptedException {
         GameState state = engine.current(sessionId);
         int moveNumber = 0;
         while (!state.isFinished()) {

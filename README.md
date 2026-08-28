@@ -58,9 +58,13 @@ which the compose file sets.
 4. `GET /api/sessions/{id}` returns the state, the last known board and the full move
    history, served from the session's own snapshot without touching the engine.
 
-The strategy that picks moves is pluggable (`simulation.strategy`): the default
-heuristic wins when it can, blocks when it must, and otherwise prefers the centre and
-the corners; a purely random one is also available.
+How the players pick their moves is chosen per match (`POST /sessions` takes an optional
+`strategy` and `blunderRate`; the configured values are the defaults). The heuristic wins
+when it can, blocks when it must, and otherwise prefers the centre and the corners —
+two such players never lose, so every game between them is a draw. `blunderRate` is
+the probability that a heuristic player skips its reasoning for a move and plays at
+random; at the default 0.25 about half the matches have a winner. `random` picks any
+free cell.
 
 ## API
 
@@ -76,7 +80,7 @@ Game Session (public, behind `/api`):
 
 | Method | Path | Result |
 |---|---|---|
-| `POST` | `/sessions` | `201` session, `503 ENGINE_UNAVAILABLE` |
+| `POST` | `/sessions` `{ "strategy": "HEURISTIC" \| "RANDOM", "blunderRate": 0.25 }` (both optional) | `201` session, `400 VALIDATION_ERROR`, `503 ENGINE_UNAVAILABLE` |
 | `POST` | `/sessions/{id}/simulate` | `202`, `409 SIMULATION_ALREADY_STARTED`, `404` |
 | `GET` | `/sessions/{id}` | `200` session with board and move history |
 | `GET` | `/sessions/{id}/events` | `text/event-stream` of `move`, `finished`, `failed` |
@@ -164,7 +168,8 @@ CI runs the default build on every push and the end-to-end suite on top of it.
 | `ENGINE_DISCOVERY` | `false` | Resolve the engine through Eureka with client-side load balancing |
 | `EUREKA_ENABLED` / `EUREKA_URL` | `false` / `http://localhost:8761/eureka/` | Registration |
 | `SIMULATION_TICK_DELAY` | `600ms` | Pause between moves (0 in tests) |
-| `SIMULATION_STRATEGY` | `heuristic` | `heuristic` or `random` |
+| `SIMULATION_STRATEGY` | `heuristic` | Default strategy: `heuristic` or `random` |
+| `SIMULATION_BLUNDER_RATE` | `0.25` | Default chance (0–1) that a heuristic player plays a random move |
 
 Engine timeouts (2 s connect, 5 s read), retry counts and the recovery-cycle bound are
 in each service's `application.yml`.

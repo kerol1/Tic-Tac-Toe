@@ -5,6 +5,7 @@ import com.tictactoe.session.domain.Player;
 import com.tictactoe.session.domain.SessionState;
 import com.tictactoe.session.persistence.MoveRecordEntity;
 import com.tictactoe.session.persistence.SessionEntity;
+import com.tictactoe.session.strategy.StrategySettings;
 
 import java.util.List;
 import java.util.UUID;
@@ -15,6 +16,7 @@ import java.util.UUID;
 public record SessionDetails(
         UUID sessionId,
         SessionState state,
+        StrategySettings settings,
         GameSnapshot game,
         List<MoveRecord> moves,
         String failureReason) {
@@ -31,6 +33,6 @@ public record SessionDetails(
         List<MoveRecord> moves = history.stream()
                 .map(move -> new MoveRecord(move.getMoveNumber(), move.getPlayer(), move.getPosition(), move.getResultingStatus()))
                 .toList();
-        return new SessionDetails(entity.getId(), entity.getState(), snapshot, moves, entity.getFailureReason());
+        return new SessionDetails(entity.getId(), entity.getState(), entity.getSettings(), snapshot, moves, entity.getFailureReason());
     }
 }
