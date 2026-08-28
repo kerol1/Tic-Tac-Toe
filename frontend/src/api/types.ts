@@ -17,9 +17,18 @@ export interface GameSnapshot {
   winningLine: number[] | null
 }
 
+export type StrategyKind = 'HEURISTIC' | 'RANDOM'
+
+/** How both players pick their moves; blunderRate only matters for the heuristic. */
+export interface MatchSettings {
+  strategy: StrategyKind
+  blunderRate: number
+}
+
 export interface SessionDetails {
   sessionId: string
   state: SessionState
+  settings: MatchSettings
   game: GameSnapshot
   moves: MoveRecord[]
   failureReason: string | null
