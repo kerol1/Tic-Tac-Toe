@@ -1,0 +1,14 @@
+simulation:
+  tick-delay: 0ms
+  strategy: heuristic
+
+engine:
+  base-url: http://localhost:1
+  read-timeout: 500ms
+  retry-backoff: 10ms
+  max-retries: 2
+
+logging:
+  level:
+    com.tictactoe.session: INFO
+    org.hibernate: WARN
