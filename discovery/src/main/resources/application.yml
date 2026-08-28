@@ -1,0 +1,24 @@
+spring:
+  application:
+    name: discovery
+
+server:
+  port: ${SERVER_PORT:8761}
+
+eureka:
+  instance:
+    hostname: ${EUREKA_HOSTNAME:localhost}
+  client:
+    # A single registry has nothing to register with or fetch from.
+    register-with-eureka: false
+    fetch-registry: false
+  server:
+    # Demo-sized cluster: drop dead instances quickly instead of protecting them.
+    enable-self-preservation: false
+    eviction-interval-timer-in-ms: 5000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

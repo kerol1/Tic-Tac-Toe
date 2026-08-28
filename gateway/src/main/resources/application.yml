@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: gateway
+  cloud:
+    loadbalancer:
+      cache:
+        ttl: 5s
+    gateway:
+      server:
+        webflux:
+          routes:
+            # The only public route. The engine is deliberately unreachable from here.
+            - id: sessions
+              uri: lb://game-session
+              predicates:
+                - Path=/api/sessions/**
+              filters:
+                # Services serve bare paths; the gateway is the one edge that strips /api.
+                - StripPrefix=1
+
+server:
+  port: ${SERVER_PORT:8080}
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+    initial-instance-info-replication-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+logging:
+  pattern:
+    console: "%d{HH:mm:ss.SSS} %5p %logger{36} - %m%n"
