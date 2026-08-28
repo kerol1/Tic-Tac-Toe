@@ -6,6 +6,7 @@ import { MatchSettings } from './components/MatchSettings'
 import { MoveTicker } from './components/MoveTicker'
 import { StartButton } from './components/StartButton'
 import { StatusBadge } from './components/StatusBadge'
+import { WinnerCard } from './components/WinnerCard'
 import { useSessionEvents } from './hooks/useSessionEvents'
 import { initialState, simulationReducer, type FailedRequest } from './state/simulationReducer'
 import type { MatchSettings as Settings } from './api/types'
@@ -24,6 +25,7 @@ export default function App(): ReactElement {
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS)
   useSessionEvents(state.phase === 'running' ? state.sessionId : null, dispatch)
   const busy = state.phase === 'creating' || state.phase === 'running'
+  const winner = state.phase === 'finished' && state.status === 'X_WON' ? 'X' : state.phase === 'finished' && state.status === 'O_WON' ? 'O' : null
 
   async function handleStart(): Promise<void> {
     dispatch({ type: 'start' })
@@ -76,6 +78,7 @@ export default function App(): ReactElement {
 
         <div className="flex flex-col gap-6">
           {state.failure && <ErrorBanner failure={state.failure} onRestart={handleStart} onReload={handleReload} />}
+          {winner && <WinnerCard winner={winner} />}
           <MoveTicker moves={state.moves} />
           {state.sessionId && (
             <p className="font-data text-xs text-ink/50">
