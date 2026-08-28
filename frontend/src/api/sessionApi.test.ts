@@ -6,6 +6,7 @@ function reply(status: number, body: unknown): Response {
 }
 
 const session = { sessionId: 's1', state: 'CREATED', game: {}, moves: [], failureReason: null }
+const settings = { strategy: 'HEURISTIC', blunderRate: 0.25 } as const
 
 describe('sessionApi', () => {
   beforeEach(() => {
@@ -20,11 +21,24 @@ describe('sessionApi', () => {
     const fetchMock = vi.fn().mockResolvedValueOnce(reply(503, {})).mockResolvedValueOnce(reply(201, session))
     vi.stubGlobal('fetch', fetchMock)
 
-    const pending = sessionApi.create()
+    const pending = sessionApi.create(settings)
     await vi.runAllTimersAsync()
 
     await expect(pending).resolves.toMatchObject({ sessionId: 's1' })
     expect(fetchMock).toHaveBeenCalledTimes(2)
+  })
+
+  it('sends the match settings as JSON', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(reply(201, session))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await sessionApi.create({ strategy: 'RANDOM', blunderRate: 0 })
+
+    const [url, init] = fetchMock.mock.calls[0] as [string, RequestInit]
+    expect(url).toBe('/api/sessions')
+    expect(init.method).toBe('POST')
+    expect(JSON.parse(init.body as string)).toEqual({ strategy: 'RANDOM', blunderRate: 0 })
+    expect((init.headers as Record<string, string>)['Content-Type']).toBe('application/json')
   })
 
   it('does not retry a rejected request', async () => {
