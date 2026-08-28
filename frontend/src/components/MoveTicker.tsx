@@ -1,10 +1,11 @@
+import type { ReactElement } from 'react'
 import { OUTCOME_LABEL, type MoveRecord } from '../api/types'
 
 interface MoveTickerProps {
   moves: MoveRecord[]
 }
 
-export function MoveTicker({ moves }: MoveTickerProps) {
+export function MoveTicker({ moves }: MoveTickerProps): ReactElement {
   return (
     <section aria-label="Move history" className="flex min-h-48 flex-col">
       <h2 className="font-display text-sm font-medium tracking-wide text-ink/60 uppercase">Moves</h2>

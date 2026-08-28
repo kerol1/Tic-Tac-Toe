@@ -43,11 +43,4 @@
     color: var(--color-ink);
     font-family: var(--font-display);
   }
-
-  @media (prefers-reduced-motion: reduce) {
-    .animate-stamp,
-    .animate-burn {
-      animation: none;
-    }
-  }
 }

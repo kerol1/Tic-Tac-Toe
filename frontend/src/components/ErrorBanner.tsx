@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import type { Failure } from '../state/simulationReducer'
 
 interface ErrorBannerProps {
@@ -12,7 +13,7 @@ const EXPLANATION: Record<string, string> = {
   INTERNAL_ERROR: 'Something went wrong on the server while the match was running.',
 }
 
-export function ErrorBanner({ failure, onRestart, onReload }: ErrorBannerProps) {
+export function ErrorBanner({ failure, onRestart, onReload }: ErrorBannerProps): ReactElement {
   const reload = failure.recovery === 'reload'
   return (
     <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-player-x/40 bg-white/60 p-4 sm:flex-row sm:items-center">

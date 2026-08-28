@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { OUTCOME_LABEL, type GameStatus, type Player } from '../api/types'
 import type { Phase } from '../state/simulationReducer'
 
@@ -30,7 +31,7 @@ const TONE: Record<Phase, string> = {
   failed: 'bg-player-x text-paper',
 }
 
-export function StatusBadge({ phase, nextPlayer, status }: StatusBadgeProps) {
+export function StatusBadge({ phase, nextPlayer, status }: StatusBadgeProps): ReactElement {
   return (
     <span
       role="status"

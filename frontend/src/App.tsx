@@ -1,4 +1,4 @@
-import { useCallback, useReducer } from 'react'
+import { useReducer, type ReactElement } from 'react'
 import { ApiRequestError, sessionApi } from './api/sessionApi'
 import { Board } from './components/Board'
 import { ErrorBanner } from './components/ErrorBanner'
@@ -8,18 +8,18 @@ import { StatusBadge } from './components/StatusBadge'
 import { useSessionEvents } from './hooks/useSessionEvents'
 import { initialState, simulationReducer, type FailedRequest } from './state/simulationReducer'
 
-function describe(error: unknown): { code: string; message: string } {
+function describeFailure(error: unknown): { code: string; message: string } {
   if (error instanceof ApiRequestError) {
     return { code: error.code, message: error.message }
   }
   return { code: 'UNKNOWN', message: 'Something unexpected happened' }
 }
 
-export default function App() {
+export default function App(): ReactElement {
   const [state, dispatch] = useReducer(simulationReducer, initialState)
   useSessionEvents(state.phase === 'running' ? state.sessionId : null, dispatch)
 
-  const start = useCallback(async () => {
+  async function handleStart(): Promise<void> {
     dispatch({ type: 'start' })
     let during: FailedRequest = 'create'
     try {
@@ -28,20 +28,20 @@ export default function App() {
       during = 'simulate'
       await sessionApi.simulate(session.sessionId)
     } catch (error) {
-      dispatch({ type: 'requestFailed', during, ...describe(error) })
+      dispatch({ type: 'requestFailed', during, ...describeFailure(error) })
     }
-  }, [])
+  }
 
-  const reload = useCallback(async () => {
+  async function handleReload(): Promise<void> {
     if (state.sessionId === null) {
       return
     }
     try {
       dispatch({ type: 'hydrate', details: await sessionApi.get(state.sessionId) })
     } catch (error) {
-      dispatch({ type: 'requestFailed', during: 'reload', ...describe(error) })
+      dispatch({ type: 'requestFailed', during: 'reload', ...describeFailure(error) })
     }
-  }, [state.sessionId])
+  }
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-10 px-6 py-12 sm:py-16">
@@ -56,7 +56,7 @@ export default function App() {
       <div className="grid gap-10 lg:grid-cols-[minmax(0,26rem)_1fr] lg:items-start">
         <div className="flex flex-col gap-6">
           <div className="flex flex-wrap items-center gap-4">
-            <StartButton phase={state.phase} onStart={start} />
+            <StartButton phase={state.phase} onStart={handleStart} />
             <StatusBadge phase={state.phase} nextPlayer={state.nextPlayer} status={state.status} />
           </div>
           <Board
@@ -68,7 +68,7 @@ export default function App() {
         </div>
 
         <div className="flex flex-col gap-6">
-          {state.failure && <ErrorBanner failure={state.failure} onRestart={start} onReload={reload} />}
+          {state.failure && <ErrorBanner failure={state.failure} onRestart={handleStart} onReload={handleReload} />}
           <MoveTicker moves={state.moves} />
           {state.sessionId && (
             <p className="font-data text-xs text-ink/50">
