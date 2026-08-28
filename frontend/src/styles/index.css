@@ -1,0 +1,53 @@
+@import "tailwindcss";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource/ibm-plex-mono/400.css";
+@import "@fontsource/ibm-plex-mono/500.css";
+
+@theme {
+  --color-paper: #f1faee;
+  --color-frost: #a8dadc;
+  --color-ink: #1d3557;
+  --color-player-x: #e63946;
+  --color-player-o: #457b9d;
+
+  --font-display: "Space Grotesk Variable", "Helvetica Neue", Arial, sans-serif;
+  --font-data: "IBM Plex Mono", "SFMono-Regular", Menlo, Consolas, monospace;
+
+  --animate-stamp: stamp 220ms cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+  --animate-burn: burn 700ms ease-out both;
+
+  @keyframes stamp {
+    from {
+      transform: scale(0.55);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes burn {
+    0% {
+      box-shadow: inset 0 0 0 0 var(--color-ink);
+    }
+    100% {
+      box-shadow: inset 0 0 0 999px var(--color-ink);
+    }
+  }
+}
+
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-display);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-stamp,
+    .animate-burn {
+      animation: none;
+    }
+  }
+}
