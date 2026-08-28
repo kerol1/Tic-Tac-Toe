@@ -1,5 +1,7 @@
-import type { ReactElement } from 'react'
+import { useState, type ReactElement } from 'react'
 import type { Failure } from '../state/simulationReducer'
+
+const CONSOLATION_GIF = 'https://media.giphy.com/media/d2ZaChASUxF6xqWk/giphy.gif'
 
 interface ErrorBannerProps {
   failure: Failure
@@ -33,8 +35,23 @@ function explain(failure: Failure): string {
 
 export function ErrorBanner({ failure, onRestart, onReload }: ErrorBannerProps): ReactElement {
   const reload = failure.recovery === 'reload'
+  const [gifAvailable, setGifAvailable] = useState(true)
+
+  function handleGifError(): void {
+    setGifAvailable(false)
+  }
+
   return (
     <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-player-x/40 bg-white/60 p-4 sm:flex-row sm:items-center">
+      {gifAvailable && (
+        <img
+          src={CONSOLATION_GIF}
+          alt="Will Ferrell crying out no"
+          loading="lazy"
+          onError={handleGifError}
+          className="size-20 shrink-0 rounded-xl object-cover motion-reduce:hidden"
+        />
+      )}
       <div className="flex-1">
         <p className="font-display font-medium text-ink">{explain(failure)}</p>
         <p className="mt-1 font-data text-xs text-ink/60">{failure.code}</p>
