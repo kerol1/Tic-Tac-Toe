@@ -6,6 +6,7 @@ import { MatchSettings } from './components/MatchSettings'
 import { MoveTicker } from './components/MoveTicker'
 import { StartButton } from './components/StartButton'
 import { StatusBadge } from './components/StatusBadge'
+import { OutcomeCard } from './components/OutcomeCard'
 import { useSessionEvents } from './hooks/useSessionEvents'
 import { initialState, simulationReducer, type FailedRequest } from './state/simulationReducer'
 import type { MatchSettings as Settings } from './api/types'
@@ -76,6 +77,7 @@ export default function App(): ReactElement {
 
         <div className="flex flex-col gap-6">
           {state.failure && <ErrorBanner failure={state.failure} onRestart={handleStart} onReload={handleReload} />}
+          {state.phase === 'finished' && state.status && <OutcomeCard key={state.sessionId} status={state.status} />}
           <MoveTicker moves={state.moves} />
           {state.sessionId && (
             <p className="font-data text-xs text-ink/50">
