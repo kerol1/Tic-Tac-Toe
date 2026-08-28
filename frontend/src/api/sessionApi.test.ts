@@ -45,10 +45,7 @@ describe('sessionApi', () => {
     const fetchMock = vi.fn().mockResolvedValue(reply(409, { code: 'SIMULATION_ALREADY_STARTED', message: 'already' }))
     vi.stubGlobal('fetch', fetchMock)
 
-    const pending = sessionApi.simulate('s1')
-    await vi.runAllTimersAsync()
-
-    await expect(pending).rejects.toMatchObject({ code: 'SIMULATION_ALREADY_STARTED', status: 409 })
+    await expect(sessionApi.simulate('s1')).rejects.toMatchObject({ code: 'SIMULATION_ALREADY_STARTED', status: 409 })
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })
 
