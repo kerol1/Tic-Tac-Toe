@@ -5,6 +5,8 @@ COPY mvnw pom.xml ./
 COPY .mvn .mvn
 COPY game-engine/pom.xml game-engine/pom.xml
 COPY game-session/pom.xml game-session/pom.xml
+COPY discovery/pom.xml discovery/pom.xml
+COPY gateway/pom.xml gateway/pom.xml
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -q -pl game-session -am dependency:go-offline
 COPY game-session/src game-session/src
 RUN --mount=type=cache,target=/root/.m2 ./mvnw -q -pl game-session -am -DskipTests package \

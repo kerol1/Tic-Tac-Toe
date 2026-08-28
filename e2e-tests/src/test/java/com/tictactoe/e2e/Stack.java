@@ -17,6 +17,7 @@ final class Stack {
     static final String FRONTEND = "frontend";
     static final String SESSION = "game-session";
     static final String ENGINE = "game-engine";
+    static final String DISCOVERY = "discovery";
 
     private static final Duration STARTUP = Duration.ofMinutes(3);
 
@@ -26,7 +27,12 @@ final class Stack {
             .withEnv("SIMULATION_TICK_DELAY", "200ms")
             .withExposedService(ENGINE, 8081, healthy(8081))
             .withExposedService(SESSION, 8082, healthy(8082))
-            .withExposedService(FRONTEND, 80, Wait.forHttp("/").forPort(80).forStatusCode(200).withStartupTimeout(STARTUP));
+            .withExposedService(DISCOVERY, 8761, healthy(8761))
+            // A 404 from the session service for a made-up id proves the whole browser
+            // path resolves: nginx -> gateway -> registry lookup -> session. Before the
+            // registry has the instance the gateway answers 503 instead.
+            .withExposedService(FRONTEND, 80, Wait.forHttp("/api/sessions/00000000-0000-0000-0000-000000000000")
+                    .forPort(80).forStatusCode(404).withStartupTimeout(STARTUP));
 
     static {
         COMPOSE.start();
