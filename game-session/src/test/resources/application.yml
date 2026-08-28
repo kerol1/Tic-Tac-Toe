@@ -8,6 +8,13 @@ engine:
   retry-backoff: 10ms
   max-retries: 2
 
+spring:
+  http:
+    client:
+      # Apache HttpClient (pulled in by the Eureka starter) silently retries 503s in
+      # TestRestTemplate, which would double-count engine attempts in the tests.
+      factory: jdk
+
 logging:
   level:
     com.tictactoe.session: INFO

@@ -1,11 +1,36 @@
+# Full topology: browser -> nginx (static UI, /api pass-through) -> gateway -> session -> engine,
+# with every Spring service registered in Eureka. The engine and the gateway publish no host
+# port on purpose; the only public doors are the UI (8080) and, for convenience, the session
+# service (8082).
 services:
+  discovery:
+    build:
+      context: .
+      dockerfile: discovery/Dockerfile
+    environment:
+      SERVER_PORT: "8761"
+      EUREKA_HOSTNAME: discovery
+    ports:
+      - "8761:8761"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8761/actuator/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
   game-engine:
     build:
       context: .
       dockerfile: game-engine/Dockerfile
     environment:
       SERVER_PORT: "8081"
+      EUREKA_ENABLED: "true"
+      EUREKA_URL: http://discovery:8761/eureka/
     # Internal service: deliberately no host port mapping
+    depends_on:
+      discovery:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8081/actuator/health || exit 1"]
       interval: 5s
@@ -19,7 +44,10 @@ services:
       dockerfile: game-session/Dockerfile
     environment:
       SERVER_PORT: "8082"
-      ENGINE_BASE_URL: http://game-engine:8081
+      ENGINE_BASE_URL: http://game-engine
+      ENGINE_DISCOVERY: "true"
+      EUREKA_ENABLED: "true"
+      EUREKA_URL: http://discovery:8761/eureka/
       SIMULATION_TICK_DELAY: ${SIMULATION_TICK_DELAY:-600ms}
     ports:
       - "8082:8082"
@@ -33,11 +61,28 @@ services:
       retries: 12
       start_period: 15s
 
+  gateway:
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
+    environment:
+      SERVER_PORT: "8080"
+      EUREKA_URL: http://discovery:8761/eureka/
+    depends_on:
+      game-session:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/actuator/health || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
   frontend:
     build:
       context: frontend
     ports:
       - "8080:80"
     depends_on:
-      game-session:
+      gateway:
         condition: service_healthy

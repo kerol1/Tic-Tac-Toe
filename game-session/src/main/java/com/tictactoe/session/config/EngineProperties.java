@@ -12,6 +12,7 @@ import java.time.Duration;
 @ConfigurationProperties(prefix = "engine")
 public record EngineProperties(
         @NotBlank String baseUrl,
+        @DefaultValue("false") boolean discovery,
         @DefaultValue("2s") Duration connectTimeout,
         @DefaultValue("5s") Duration readTimeout,
         @DefaultValue("2") @PositiveOrZero int maxRetries,

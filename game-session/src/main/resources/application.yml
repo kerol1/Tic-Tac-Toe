@@ -15,12 +15,21 @@ spring:
   h2:
     console:
       enabled: false
+  cloud:
+    loadbalancer:
+      cache:
+        # An instance list fetched before the engine registered must not be cached for
+        # the default 35 s.
+        ttl: 5s
 
 server:
   port: ${SERVER_PORT:8082}
 
 engine:
   base-url: ${ENGINE_BASE_URL:http://localhost:8081}
+  # true: base-url names a registered service (http://game-engine) resolved through
+  # discovery and client-side load balancing instead of a fixed address.
+  discovery: ${ENGINE_DISCOVERY:false}
   connect-timeout: 2s
   read-timeout: 5s
   max-retries: 2
@@ -30,6 +39,21 @@ simulation:
   tick-delay: ${SIMULATION_TICK_DELAY:600ms}
   strategy: ${SIMULATION_STRATEGY:heuristic}
   max-recovery-cycles: 3
+
+eureka:
+  client:
+    # Off by default: bare `mvn spring-boot:run` and the tests need no registry.
+    # The compose file that ships the gateway turns it on.
+    enabled: ${EUREKA_ENABLED:false}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    registry-fetch-interval-seconds: 5
+    # Demo-sized cluster: register within seconds, not the default 40.
+    initial-instance-info-replication-interval-seconds: 5
+  instance:
+    prefer-ip-address: true
+    lease-renewal-interval-in-seconds: 5
+    lease-expiration-duration-in-seconds: 15
 
 management:
   endpoints:
