@@ -45,10 +45,12 @@ public final class HeuristicStrategy implements MoveStrategy {
                 .findFirst();
     }
 
+    /** The single free cell of a line whose every other cell already belongs to {@code player}. */
     private static Optional<Integer> missingCell(Board board, List<Integer> line, Player player) {
-        long owned = line.stream().filter(cell -> board.cell(cell) == player).count();
         List<Integer> free = line.stream().filter(cell -> board.cell(cell) == null).toList();
-        return owned == 2 && free.size() == 1 ? Optional.of(free.getFirst()) : Optional.empty();
+        long owned = line.stream().filter(cell -> board.cell(cell) == player).count();
+        boolean oneMoveFromCompletion = free.size() == 1 && owned == line.size() - free.size();
+        return oneMoveFromCompletion ? Optional.of(free.getFirst()) : Optional.empty();
     }
 
     private Optional<Integer> pick(List<Integer> candidates) {
