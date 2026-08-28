@@ -1,6 +1,7 @@
 import type { ApiError, SessionDetails } from './types'
 
 const BASE = '/api/sessions'
+const RETRY_AFTER_MS = 1500
 
 export class ApiRequestError extends Error {
   constructor(
@@ -12,7 +13,12 @@ export class ApiRequestError extends Error {
   }
 }
 
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
+/** Nothing has happened on the server yet when the edge cannot reach it, so one more try is safe. */
+function isTransient(error: ApiRequestError): boolean {
+  return error.status === 0 || error.status === 502 || error.status === 503
+}
+
+async function requestOnce<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
     response = await fetch(BASE + path, { headers: { Accept: 'application/json' }, ...init })
@@ -24,6 +30,18 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new ApiRequestError(response.status, body?.code ?? 'HTTP_' + response.status, body?.message ?? response.statusText)
   }
   return (await response.json()) as T
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  try {
+    return await requestOnce<T>(path, init)
+  } catch (error) {
+    if (!(error instanceof ApiRequestError) || !isTransient(error)) {
+      throw error
+    }
+    await new Promise((resolve) => setTimeout(resolve, RETRY_AFTER_MS))
+    return requestOnce<T>(path, init)
+  }
 }
 
 export const sessionApi = {
