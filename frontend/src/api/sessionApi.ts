@@ -1,4 +1,4 @@
-import type { ApiError, SessionDetails } from './types'
+import type { ApiError, MatchSettings, SessionDetails } from './types'
 
 const BASE = '/api/sessions'
 
@@ -27,7 +27,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 export const sessionApi = {
-  create: () => request<SessionDetails>('', { method: 'POST' }),
+  create: (settings: MatchSettings) =>
+    request<SessionDetails>('', {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify(settings),
+    }),
   simulate: (sessionId: string) => request<unknown>(`/${sessionId}/simulate`, { method: 'POST' }),
   get: (sessionId: string) => request<SessionDetails>(`/${sessionId}`),
   eventsUrl: (sessionId: string) => `${BASE}/${sessionId}/events`,

@@ -65,6 +65,7 @@ describe('simulationReducer', () => {
     const details: SessionDetails = {
       sessionId: 's1',
       state: 'RUNNING',
+      settings: { strategy: 'HEURISTIC', blunderRate: 0.25 },
       game: { board: boardWith([4, 'X']), nextPlayer: 'O', status: 'IN_PROGRESS', winningLine: null },
       moves: [{ moveNumber: 1, player: 'X', position: 4, gameStatus: 'IN_PROGRESS' }],
       failureReason: null,
