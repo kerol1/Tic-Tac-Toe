@@ -10,6 +10,12 @@ interface BoardProps {
 
 const PLAYER_CLASS = { X: 'text-player-x', O: 'text-player-o' } as const
 
+/** A winning cell fills with the winner's colour; the sweep only plays when motion is welcome. */
+const WINNING_CLASS = {
+  X: '[--burn-color:var(--color-player-x)] bg-(--burn-color) motion-safe:animate-burn',
+  O: '[--burn-color:var(--color-player-o)] bg-(--burn-color) motion-safe:animate-burn',
+} as const
+
 export function Board({ board, winningLine, lastStampedCell, live }: BoardProps): ReactElement {
   return (
     <ul
@@ -24,7 +30,7 @@ export function Board({ board, winningLine, lastStampedCell, live }: BoardProps)
           <li
             key={index}
             aria-label={cell ? `cell ${index + 1}: ${cell}` : `cell ${index + 1}: empty`}
-            className={`relative flex min-h-0 items-center justify-center rounded-xl bg-paper ${winning ? 'motion-safe:animate-burn' : ''}`}
+            className={`relative flex min-h-0 items-center justify-center rounded-xl bg-paper ${winning && cell ? WINNING_CLASS[cell] : ''}`}
           >
             {cell === null ? (
               <span aria-hidden="true" className="font-data text-sm text-ink/25 select-none">
