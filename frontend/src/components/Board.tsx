@@ -15,7 +15,7 @@ export function Board({ board, winningLine, lastStampedCell, live }: BoardProps)
     <ul
       aria-label="Tic Tac Toe board"
       aria-busy={live}
-      className="grid aspect-square w-full max-w-[26rem] grid-cols-3 gap-2 rounded-2xl bg-ink p-2 shadow-[0_24px_60px_-30px_rgba(29,53,87,0.6)]"
+      className="grid aspect-square w-full max-w-[26rem] grid-cols-3 grid-rows-3 gap-2 rounded-2xl bg-ink p-2 shadow-[0_24px_60px_-30px_rgba(29,53,87,0.6)]"
     >
       {board.map((cell, index) => {
         const winning = winningLine?.includes(index) ?? false
@@ -24,7 +24,7 @@ export function Board({ board, winningLine, lastStampedCell, live }: BoardProps)
           <li
             key={index}
             aria-label={cell ? `cell ${index + 1}: ${cell}` : `cell ${index + 1}: empty`}
-            className={`relative flex items-center justify-center rounded-xl bg-paper ${winning ? 'motion-safe:animate-burn' : ''}`}
+            className={`relative flex min-h-0 items-center justify-center rounded-xl bg-paper ${winning ? 'motion-safe:animate-burn' : ''}`}
           >
             {cell === null ? (
               <span aria-hidden="true" className="font-data text-sm text-ink/25 select-none">
